@@ -1,0 +1,192 @@
+/* ============================================================
+ *  AIOT Nexus — 设计令牌（CSS Custom Properties）
+ *  双主题：浅色极简 × 暗色极客
+ * ============================================================ */
+
+/* ==================== 浅色主题 ==================== */
+:root[data-theme="light"] {
+  /* 背景层级 */
+  --bg-base: #ffffff;
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-input: #f8fafc;
+  --bg-input-focus: #ffffff;
+  --bg-sidebar: #f8fafc;
+  --bg-overlay: rgba(0, 0, 0, 0.3);
+
+  /* 文字 */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --text-highlight: #0f172a;
+
+  /* 主色 — 蓝色系 */
+  --color-primary: #2563eb;
+  --color-primary-light: #3b82f6;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-glow: rgba(37, 99, 235, 0.15);
+
+  /* 辅色 */
+  --color-accent: #6366f1;
+  --color-accent-light: #818cf8;
+  --color-accent-dark: #4f46e5;
+  --color-accent-glow: rgba(99, 102, 241, 0.15);
+
+  /* 功能色 */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* 边框 */
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-card: rgba(0, 0, 0, 0.08);
+  --border-glow: rgba(37, 99, 235, 0.3);
+  --border-input: #e2e8f0;
+
+  /* 阴影 */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-btn: 0 2px 8px rgba(37, 99, 235, 0.25);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08);
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* 过渡 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+
+  /* 毛玻璃（浅色下无效果） */
+  --glass-bg: transparent;
+  --glass-blur: 0px;
+
+  /* 等宽字体 */
+  --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+
+  /* ---- Element Plus 变量 ---- */
+  --el-color-primary: #2563eb;
+  --el-color-primary-light-3: #3b82f6;
+  --el-color-primary-light-5: #60a5fa;
+  --el-color-primary-light-7: #93bbfd;
+  --el-color-primary-light-8: #bfdbfe;
+  --el-color-primary-light-9: #dbeafe;
+  --el-color-primary-dark-2: #1d4ed8;
+  --el-bg-color: #ffffff;
+  --el-bg-color-overlay: #ffffff;
+  --el-text-color-primary: #1e293b;
+  --el-text-color-regular: #334155;
+  --el-text-color-secondary: #64748b;
+  --el-text-color-placeholder: #94a3b8;
+  --el-border-color: #e2e8f0;
+  --el-border-color-light: #f1f5f9;
+  --el-border-color-lighter: #f8fafc;
+  --el-border-color-extra-light: #f8fafc;
+  --el-fill-color: #f8fafc;
+  --el-fill-color-light: #f1f5f9;
+  --el-fill-color-lighter: #f8fafc;
+  --el-fill-color-blank: #ffffff;
+  --el-dialog-bg-color: #ffffff;
+  --el-message-bg-color: #ffffff;
+  --el-box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --el-border-radius-base: 8px;
+}
+
+/* ==================== 深色主题 ==================== */
+:root[data-theme="dark"] {
+  /* 背景层级 */
+  --bg-base: #0a0a0f;
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #141428;
+  --bg-card: rgba(15, 15, 30, 0.6);
+  --bg-card-hover: rgba(20, 20, 40, 0.75);
+  --bg-input: rgba(255, 255, 255, 0.04);
+  --bg-input-focus: rgba(255, 255, 255, 0.07);
+  --bg-sidebar: rgba(10, 10, 20, 0.8);
+  --bg-overlay: rgba(0, 0, 0, 0.55);
+
+  /* 文字 */
+  --text-primary: #e8edf5;
+  --text-secondary: #8892b0;
+  --text-muted: #4a5578;
+  --text-highlight: #e8edf5;
+
+  /* 主色 — 霓虹青 */
+  --color-primary: #00e5ff;
+  --color-primary-light: #4dffff;
+  --color-primary-dark: #00b3cc;
+  --color-primary-glow: rgba(0, 229, 255, 0.5);
+
+  /* 辅色 — 紫罗兰 */
+  --color-accent: #8b5cf6;
+  --color-accent-light: #a78bfa;
+  --color-accent-dark: #7c3aed;
+  --color-accent-glow: rgba(139, 92, 246, 0.5);
+
+  /* 功能色 */
+  --color-success: #00e676;
+  --color-warning: #ffab00;
+  --color-error: #ff3d5a;
+  --color-info: #448aff;
+
+  /* 边框 */
+  --border-subtle: rgba(139, 92, 246, 0.12);
+  --border-card: rgba(139, 92, 246, 0.18);
+  --border-glow: rgba(0, 229, 255, 0.3);
+  --border-input: rgba(139, 92, 246, 0.2);
+
+  /* 阴影 */
+  --shadow-card: 0 8px 40px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 12px 48px rgba(0, 0, 0, 0.5), 0 0 24px rgba(0, 229, 255, 0.06);
+  --shadow-btn: 0 4px 20px rgba(0, 229, 255, 0.3);
+  --shadow-lg: 0 0 60px rgba(0, 0, 0, 0.5);
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  /* 过渡 */
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 毛玻璃 */
+  --glass-bg: rgba(10, 15, 31, 0.82);
+  --glass-blur: 18px;
+
+  /* 等宽字体 */
+  --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Courier New', monospace;
+
+  /* ---- Element Plus 变量 ---- */
+  --el-color-primary: #00e5ff;
+  --el-color-primary-light-3: #4dffff;
+  --el-color-primary-light-5: #80ffff;
+  --el-color-primary-light-7: #b3f5ff;
+  --el-color-primary-light-8: #d0f9ff;
+  --el-color-primary-light-9: #e8fcff;
+  --el-color-primary-dark-2: #00b3cc;
+  --el-bg-color: #0a0a0f;
+  --el-bg-color-overlay: rgba(15, 23, 42, 0.96);
+  --el-text-color-primary: #e8edf5;
+  --el-text-color-regular: #c8d2e0;
+  --el-text-color-secondary: #8892b0;
+  --el-text-color-placeholder: #4a5578;
+  --el-border-color: rgba(139, 92, 246, 0.2);
+  --el-border-color-light: rgba(139, 92, 246, 0.12);
+  --el-border-color-lighter: rgba(139, 92, 246, 0.08);
+  --el-border-color-extra-light: rgba(139, 92, 246, 0.06);
+  --el-fill-color: rgba(255, 255, 255, 0.04);
+  --el-fill-color-light: rgba(255, 255, 255, 0.06);
+  --el-fill-color-lighter: rgba(255, 255, 255, 0.03);
+  --el-fill-color-blank: rgba(15, 23, 42, 0.6);
+  --el-dialog-bg-color: rgba(10, 15, 31, 0.96);
+  --el-message-bg-color: rgba(15, 23, 42, 0.9);
+  --el-box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  --el-border-radius-base: 8px;
+}

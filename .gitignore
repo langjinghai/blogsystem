@@ -1,0 +1,30 @@
+# ==================== 依赖 / 构建产物 ====================
+node_modules/
+blogSystem/target/
+*.class
+*.tsbuildinfo
+
+# 说明：nginx 直接托管 nginx/frontend/dist，因此保留该构建产物以便开箱运行。
+# 如只跟踪源码，可取消下面一行注释并从索引移除：git rm -r --cached nginx/frontend/dist
+# nginx/frontend/dist/
+
+# ==================== 运行时日志 / 临时文件 ====================
+nginx/logs/*
+!nginx/logs/.gitkeep
+nginx/temp/*
+!nginx/temp/.gitkeep
+*.log
+*.pid
+
+# ==================== IDE / 系统 ====================
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==================== 本地环境变量 ====================
+.env
+.env.*
+!.env.example

@@ -1,0 +1,133 @@
+/* ============================================================
+ *  AIOT Nexus — Markdown / 代码块样式
+ * ============================================================ */
+
+/* ---- 文章详情渲染内容 ---- */
+.app-article-detail__content {
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--text-primary);
+
+  /* 标题 */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-highlight);
+    margin: 1.6em 0 0.8em;
+    font-weight: 700;
+  }
+
+  h1 { font-size: 26px; }
+  h2 {
+    font-size: 22px;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 8px;
+  }
+  h3 { font-size: 18px; }
+  h4 { font-size: 16px; }
+
+  /* 段落 */
+  p { margin: 0.8em 0; }
+
+  /* 行内代码 */
+  code {
+    background: var(--color-accent-glow);
+    color: var(--color-accent-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
+
+  /* 代码块 */
+  pre {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0;
+
+    code {
+      background: none;
+      color: var(--text-primary);
+      padding: 0;
+      font-size: 14px;
+      line-height: 1.7;
+      border-radius: 0;
+    }
+  }
+
+  /* 引用 */
+  blockquote {
+    border-left: 3px solid var(--color-primary);
+    padding: 8px 20px;
+    margin: 16px 0;
+    background: var(--color-primary-glow);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--text-secondary);
+
+    p { margin: 0.4em 0; }
+  }
+
+  /* 图片 */
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    margin: 12px 0;
+  }
+
+  /* 链接 */
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  /* 表格 */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+
+    th, td {
+      padding: 10px 14px;
+      border: 1px solid var(--border-subtle);
+      text-align: left;
+    }
+
+    th {
+      background: var(--color-primary-glow);
+      font-weight: 600;
+      color: var(--text-highlight);
+    }
+
+    tr:nth-child(even) td {
+      background: var(--bg-input);
+    }
+  }
+
+  /* 水平线 */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border-subtle);
+    margin: 24px 0;
+  }
+
+  /* 列表 */
+  ul, ol {
+    padding-left: 24px;
+    margin: 8px 0;
+
+    li {
+      margin: 4px 0;
+    }
+  }
+
+  /* 任务列表 */
+  input[type="checkbox"] {
+    margin-right: 6px;
+    accent-color: var(--color-primary);
+  }
+}
