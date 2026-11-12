@@ -28,3 +28,7 @@ desktop.ini
 .env
 .env.*
 !.env.example
+
+# ==================== Docker 部署本地文件 ====================
+deploy/docker/.env
+deploy/docker/init/*.sql

@@ -1,0 +1,11 @@
+.git
+.gitignore
+**/.idea
+**/*.iml
+**/node_modules
+**/.env
+**/target
+**/dist
+nginx/logs
+nginx/temp
+deploy/docker/init/*.sql

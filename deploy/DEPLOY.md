@@ -3,6 +3,8 @@
 > 目标：把 Spring Boot 后端、Vue 前端、MySQL、Redis 部署到一台 Linux 服务器，由 nginx 统一对外提供 80/443 服务。
 >
 > 下面以 **Ubuntu 22.04 / 24.04** 为例；CentOS/RHEL 的差异写在对应步骤里。
+>
+> 如果希望用 Docker Compose 一键部署，见 **[docker/README.md](docker/README.md)**。
 
 ## 0. 架构与端口
 

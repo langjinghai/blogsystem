@@ -8,7 +8,7 @@
 |---|---|
 | 后端 | Spring Boot 2.7.18、MyBatis-Plus、MySQL 8、Redis、阿里云 OSS |
 | 前端 | Vue 3、TypeScript、Vite、Element Plus、Pinia、Vue Router |
-| 部署 | nginx（静态资源 + 反向代理）、systemd |
+| 部署 | nginx（静态资源 + 反向代理）、systemd、Docker Compose |
 
 ## 目录结构
 
@@ -26,6 +26,12 @@ deploy/
   blog.service           systemd 服务模板
   application-prod.yaml.example  生产配置模板
   blog.env.example       OSS 密钥等环境变量模板
+  docker/                Docker Compose 部署
+    docker-compose.yml
+    Dockerfile.backend
+    Dockerfile.frontend
+    nginx.conf
+    README.md
 ```
 
 ## 本地运行（简要）
@@ -40,6 +46,20 @@ deploy/
 > 当前验证码会打印在后端日志中，未接入真实短信服务。
 
 ## 部署到服务器
+
+### 方式一：Docker Compose（推荐）
+
+一条命令拉起 MySQL、Redis、后端和 nginx：
+
+```bash
+cp deploy/docker/.env.example deploy/docker/.env   # 填写密码和 OSS 密钥
+cp /path/to/blogsystem.sql deploy/docker/init/blogsystem.sql
+docker compose --env-file deploy/docker/.env -f deploy/docker/docker-compose.yml up -d --build
+```
+
+详细说明见 **[deploy/docker/README.md](deploy/docker/README.md)**。
+
+### 方式二：直接部署到宿主机
 
 完整的 Ubuntu/CentOS 部署步骤、数据库导出、systemd、nginx、HTTPS、备份与排错见：
 

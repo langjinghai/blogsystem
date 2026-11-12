@@ -1,0 +1,29 @@
+# syntax=docker/dockerfile:1
+# 构建上下文：仓库根目录
+# docker build -f deploy/docker/Dockerfile.backend -t blog-backend .
+
+# ---------- 构建阶段 ----------
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /build
+
+# 国内服务器使用阿里云 Maven 镜像
+COPY deploy/docker/maven-settings.xml /root/.m2/settings.xml
+
+COPY blogSystem/pom.xml ./pom.xml
+COPY blogSystem/src ./src
+RUN mvn -B -DskipTests package
+
+# ---------- 运行阶段 ----------
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+
+RUN groupadd --system app && useradd --system --gid app app
+
+COPY --from=build /build/target/blogSystem-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY deploy/docker/application-docker.yaml /app/config/application-docker.yaml
+
+RUN chown -R app:app /app
+USER app
+
+EXPOSE 8080
+ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-Duser.timezone=Asia/Shanghai", "-jar", "/app/app.jar"]

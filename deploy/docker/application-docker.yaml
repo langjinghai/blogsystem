@@ -1,0 +1,48 @@
+# ============================================================
+#  Docker Compose 生产配置
+#  由 SPRING_PROFILES_ACTIVE=docker 加载
+#  敏感值来自 deploy/docker/.env
+# ============================================================
+
+server:
+  port: 8080
+  # 容器内必须监听 0.0.0.0，nginx 容器才能访问
+  address: 0.0.0.0
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql:3306/blogsystem?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+
+  redis:
+    host: redis
+    port: 6379
+    database: 0
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 1
+        time-between-eviction-runs: 10s
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+aliyun:
+  oss:
+    endpoint: ${OSS_ENDPOINT:oss-cn-shenzhen.aliyuncs.com}
+    access-key-id: ${OSS_ACCESS_KEY_ID}
+    access-key-secret: ${OSS_ACCESS_KEY_SECRET}
+    bucket-name: ${OSS_BUCKET:blogsystems}
+
+logging:
+  level:
+    com.example.springbootproject: info
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
