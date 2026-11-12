@@ -14,6 +14,7 @@ import com.example.springbootproject.pojo.UserDTO;
 import com.example.springbootproject.pojo.loginForm;
 import com.example.springbootproject.service.IFollowService;
 import com.example.springbootproject.service.IUserService;
+import com.example.springbootproject.utils.PasswordUtils;
 import com.example.springbootproject.utils.RegexUtils;
 import com.example.springbootproject.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -72,8 +73,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 5. 密码登录模式
         else if (password != null && !password.isEmpty()) {
 
-            if (!password.equals(user.getPassword())) {
+            if (!PasswordUtils.matches(password, user.getPassword())) {
                 return Result.fail("密码错误");
+            }
+            // 兼容历史明文数据：密码登录成功后顺手升级为 BCrypt
+            if (!PasswordUtils.isBcrypt(user.getPassword())) {
+                user.setPassword(PasswordUtils.encode(password));
+                updateById(user);
             }
         }
         // 6. 既无验证码也无密码
@@ -91,6 +97,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                         .setIgnoreNullValue(true)
                         .setFieldValueEditor((fieldName, fieldValue) -> fieldValue == null ? null : fieldValue.toString())
         );
+        userMap.put("tokenVersion", currentTokenVersion(user.getId()));
         stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token, userMap);
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.SECONDS);
 
@@ -146,7 +153,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 5. 创建用户
         User user = new User();
         user.setPhone(phone);
-        user.setPassword(password);
+        user.setPassword(PasswordUtils.encode(password));
         user.setNickName(USER_NICK_NAME_PREFIX + RandomUtil.randomString(6));
         save(user);
 
@@ -163,6 +170,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                         .setIgnoreNullValue(true)
                         .setFieldValueEditor((fieldName, fieldValue) -> fieldValue == null ? null : fieldValue.toString())
         );
+        userMap.put("tokenVersion", currentTokenVersion(user.getId()));
         stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token, userMap);
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.SECONDS);
 
@@ -180,8 +188,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         // 2. 校验旧密码
         User user = getById(currentUser.getId());
+        if (user == null) {
+            return Result.fail("用户不存在");
+        }
         String oldPassword = loginForm.getPassword(); // loginForm.password 当作旧密码
-        if (oldPassword == null || !oldPassword.equals(user.getPassword())) {
+        if (!PasswordUtils.matches(oldPassword, user.getPassword())) {
             return Result.fail("旧密码错误");
         }
 
@@ -196,8 +207,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
 
         // 4. 更新密码
-        user.setPassword(newPassword);
+        user.setPassword(PasswordUtils.encode(newPassword));
         updateById(user);
+        // 让该用户所有旧 token 立即失效
+        invalidateUserTokens(user.getId());
 
         log.info("密码修改成功：{}", user.getPhone());
         return Result.ok();
@@ -235,8 +248,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
 
         // 5. 更新密码
-        existUser.setPassword(newPassword);
+        existUser.setPassword(PasswordUtils.encode(newPassword));
         updateById(existUser);
+        // 重置密码后，该用户所有旧 token 立即失效
+        invalidateUserTokens(existUser.getId());
 
         // 6. 删除已使用的验证码
         stringRedisTemplate.delete(LOGIN_CODE_KEY + phone);
@@ -354,6 +369,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         return Result.ok();
     }
 
+    /**
+     * 当前用户 token 版本。改密/重置密码时该值自增，旧 token 在拦截器中会被判定失效。
+     */
+    private String currentTokenVersion(Long userId) {
+        String version = stringRedisTemplate.opsForValue().get(USER_TOKEN_VERSION_KEY + userId);
+        return version == null ? "0" : version;
+    }
 
+    /**
+     * 让该用户所有已签发的 token 立即失效（改密、重置密码后调用）。
+     * 不删除 token 本身，而是递增版本号，避免遍历大量 Redis key。
+     */
+    private void invalidateUserTokens(Long userId) {
+        try {
+            stringRedisTemplate.opsForValue().increment(USER_TOKEN_VERSION_KEY + userId);
+        } catch (Exception e) {
+            log.error("刷新用户 token 版本失败，userId={}", userId, e);
+        }
+    }
 
 }

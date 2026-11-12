@@ -100,7 +100,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { marked } from 'marked'
+import { renderMarkdownPreview } from '@/utils/markdown'
 import { getCategoryList, type Category } from '@/api/category'
 import { createArticle, uploadImage, type ArticleForm } from '@/api/article'
 import type { UploadFile } from 'element-plus'
@@ -124,10 +124,7 @@ const canSubmit = computed(() => {
   return form.title.trim().length > 0 && form.content.trim().length > 0 && form.categoryId > 0
 })
 
-const previewHtml = computed(() => {
-  if (!form.content) return '<span style="color:var(--text-muted)">预览区域...</span>'
-  return marked(form.content) as string
-})
+const previewHtml = computed(() => renderMarkdownPreview(form.content))
 
 onMounted(async () => {
   try {

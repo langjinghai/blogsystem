@@ -90,7 +90,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { marked } from 'marked'
+import { renderMarkdown } from '@/utils/markdown'
 import { useUserStore } from '@/stores/user'
 import { getArticleById, toggleLike, deleteArticle, addView, type Article } from '@/api/article'
 import { getCommentsByArticle, type Comment } from '@/api/comment'
@@ -121,14 +121,7 @@ const isOwner = computed(() => {
   return article.value.authorId === userStore.userInfo.id
 })
 
-const renderedContent = computed(() => {
-  if (!article.value?.content) return ''
-  try {
-    return marked(article.value.content) as string
-  } catch {
-    return '<p style="color:var(--color-error)">内容渲染失败</p>'
-  }
-})
+const renderedContent = computed(() => renderMarkdown(article.value?.content || ''))
 
 onMounted(async () => {
   await loadArticle()

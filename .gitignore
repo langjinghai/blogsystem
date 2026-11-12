@@ -29,6 +29,10 @@ desktop.ini
 .env.*
 !.env.example
 
+# 本地敏感配置（数据库密码 / Redis 地址）
+application-local.yaml
+blogSystem/application-local.yaml
+
 # ==================== Docker 部署本地文件 ====================
 deploy/docker/.env
 deploy/docker/init/*.sql
