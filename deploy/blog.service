@@ -1,0 +1,23 @@
+[Unit]
+Description=BlogSystem Spring Boot API
+Documentation=https://github.com/langjinghai/blogsystem
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=blogsystem
+Group=blogsystem
+WorkingDirectory=/opt/blogsystem
+EnvironmentFile=/opt/blogsystem/blog.env
+ExecStart=/usr/bin/java -Xms256m -Xmx512m -Duser.timezone=Asia/Shanghai -jar /opt/blogsystem/blogSystem-0.0.1-SNAPSHOT.jar
+SuccessExitStatus=143
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
