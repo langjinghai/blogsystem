@@ -42,6 +42,7 @@ sudo dnf install -y java-17-openjdk-headless mysql-server redis nginx maven
 ```
 
 > 项目 `pom.xml` 指定 Java 11，JDK 17 可以正常编译运行。
+> 注意：MyBatis-Plus 3.4.3 在 JDK 17 下需要 `--add-opens`，`deploy/blog.service` 已包含这两个参数；如果坚持用 JDK 11 可去掉。
 > 如果服务器上同时有多个 JDK，用 `update-alternatives --config java` 切换到 17。
 
 ## 2. 准备数据库

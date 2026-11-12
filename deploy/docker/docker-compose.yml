@@ -46,6 +46,8 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      # MyBatis-Plus 3.4.3 在 JDK17 下需要开放 java.lang.invoke 模块
+      JAVA_TOOL_OPTIONS: "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED"
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       OSS_ACCESS_KEY_ID: ${OSS_ACCESS_KEY_ID}

@@ -203,6 +203,7 @@ nginx 配置里使用了 Docker 内置 DNS（`resolver 127.0.0.11`）和变量 `
 | npm 构建慢 | 在 `.env` 设置 `NPM_REGISTRY=https://registry.npmmirror.com` |
 | 上传图片失败 | OSS AccessKey/权限；Bucket 需公共读，否则图片 URL 403 |
 | 上传大图 413 | 调大 compose 中 nginx `client_max_body_size` 和 Spring multipart 限制 |
+| 接口报 `Could not initialize class com.baomidou.mybatisplus.core.toolkit.support.SerializedLambdaMeta` | JDK17 + MyBatis-Plus 3.4.3 的模块访问问题；compose 已通过 `JAVA_TOOL_OPTIONS` 加 `--add-opens`，重启 backend 即可 |
 | 直接访问 `/user/5` 返回 JSON | 使用本目录 `nginx.conf`（已按 Accept 区分 SPA/API） |
 
 ## 9. 安全建议
