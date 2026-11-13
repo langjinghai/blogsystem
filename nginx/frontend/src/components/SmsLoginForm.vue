@@ -114,8 +114,8 @@ async function handleSendCode() {
   sending.value = true
   try {
     const res = props.channel === 'email'
-      ? await sendEmailCode(form.email.trim())
-      : await sendCode(form.phone)
+      ? await sendEmailCode(form.email.trim(), 'login')
+      : await sendCode(form.phone, 'login')
     if (res.success) {
       ElMessage.success(
         props.channel === 'email'

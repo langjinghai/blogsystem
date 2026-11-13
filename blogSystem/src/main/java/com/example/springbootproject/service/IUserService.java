@@ -9,9 +9,9 @@ import com.example.springbootproject.pojo.loginForm;
 public interface IUserService extends IService<User> {
     Result login(loginForm loginForm);
 
-    Result sendCode(String phone);
+    Result sendCode(String phone, String scene);
 
-    Result sendEmailCode(String email);
+    Result sendEmailCode(String email, String scene);
 
     Result emailLogin(loginForm loginForm);
 

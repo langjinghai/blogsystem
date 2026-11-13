@@ -11,6 +11,8 @@ import type { ApiResult } from '@/utils/request'
 
 export type { ApiResult }
 
+export type CodeScene = 'login' | 'register' | 'forget'
+
 export interface LoginParams {
   phone?: string
   email?: string
@@ -81,15 +83,15 @@ export interface UpdateProfileParams {
 
 // ==================== API 方法 ====================
 
-/** POST /user/code?phone=13800138000 */
-export async function sendCode(phone: string): Promise<ApiResult> {
-  const { data } = await http.post<ApiResult>('/user/code', null, { params: { phone } })
+/** POST /user/code?phone=13800138000&scene=login|register|forget */
+export async function sendCode(phone: string, scene: CodeScene = 'login'): Promise<ApiResult> {
+  const { data } = await http.post<ApiResult>('/user/code', null, { params: { phone, scene } })
   return data
 }
 
-/** POST /user/email/code?email=xxx@qq.com */
-export async function sendEmailCode(email: string): Promise<ApiResult> {
-  const { data } = await http.post<ApiResult>('/user/email/code', null, { params: { email } })
+/** POST /user/email/code?email=xxx@qq.com&scene=login|register|forget */
+export async function sendEmailCode(email: string, scene: CodeScene = 'login'): Promise<ApiResult> {
+  const { data } = await http.post<ApiResult>('/user/email/code', null, { params: { email, scene } })
   return data
 }
 

@@ -16,6 +16,9 @@ export const useUserStore = defineStore('user', () => {
   // ---------- actions ----------
   function setToken(t: string) {
     token.value = t
+    // 换 token（登录/注册）后必须重新拉取当前账号信息，避免沿用上一个账号的缓存
+    userInfo.value = null
+    infoLoaded.value = false
     if (t) {
       localStorage.setItem('auth_token', t)
     } else {

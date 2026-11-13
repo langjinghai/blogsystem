@@ -120,11 +120,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public Result sendCode(String phone) {
+    public Result sendCode(String phone, String scene) {
         // 校验手机号
         boolean phoneInvalid = RegexUtils.isPhoneInvalid(phone);
         if (phoneInvalid) {
             return Result.fail("手机号格式错误");
+        }
+        User user = query().eq("phone", phone).one();
+        Result sceneCheck = checkAccountScene(scene, user != null, "手机号");
+        if (sceneCheck != null) {
+            return sceneCheck;
         }
         String code = RandomUtil.randomNumbers(6);
         stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
@@ -137,10 +142,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     // ==================== 邮箱认证 ====================
 
     @Override
-    public Result sendEmailCode(String email) {
+    public Result sendEmailCode(String email, String scene) {
         String normalized = normalizeEmail(email);
         if (RegexUtils.isEmailInvalid(normalized) || normalized.length() > 128) {
             return Result.fail("邮箱格式错误");
+        }
+
+        User user = query().eq("email", normalized).one();
+        Result sceneCheck = checkAccountScene(scene, user != null, "邮箱");
+        if (sceneCheck != null) {
+            return sceneCheck;
         }
 
         String cooldownKey = EMAIL_CODE_COOLDOWN_KEY + normalized;
@@ -530,6 +541,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     private String normalizeEmail(String email) {
         return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * 验证码场景校验：
+     * login/forget 只能发给已注册账号；register 只能发给未注册账号。
+     */
+    private Result checkAccountScene(String scene, boolean exists, String accountType) {
+        String normalizedScene = (scene == null || scene.isEmpty()) ? "login" : scene;
+        if ("register".equals(normalizedScene)) {
+            if (exists) {
+                return Result.fail("该" + accountType + "已注册，请直接登录");
+            }
+            return null;
+        }
+        if ("login".equals(normalizedScene) || "forget".equals(normalizedScene)) {
+            if (!exists) {
+                return Result.fail("该" + accountType + "未注册，请先注册");
+            }
+            return null;
+        }
+        return Result.fail("验证码场景参数错误");
     }
 
     private String generateEmailCode() {

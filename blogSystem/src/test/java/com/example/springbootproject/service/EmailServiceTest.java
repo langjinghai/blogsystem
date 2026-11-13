@@ -39,7 +39,7 @@ class EmailServiceTest {
         ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(captor.capture());
         SimpleMailMessage message = captor.getValue();
-        assertEquals("sender@qq.com", message.getFrom());
+        assertEquals("AIOT Nexus <sender@qq.com>", message.getFrom());
         assertEquals("user@qq.com", message.getTo()[0]);
         assertTrue(message.getText().contains("123456"));
     }

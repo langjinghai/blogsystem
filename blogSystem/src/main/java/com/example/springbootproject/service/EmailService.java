@@ -33,7 +33,8 @@ public class EmailService {
         String sender = (from == null || from.trim().isEmpty()) ? username : from.trim();
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(sender);
+        // 显示名可以隐藏 QQ 昵称，但收件人仍能在邮件详情中看到发件地址
+        message.setFrom("AIOT Nexus <" + sender + ">");
         message.setTo(email);
         message.setSubject("AIOT Nexus 登录验证码");
         message.setText("您好：\n\n"

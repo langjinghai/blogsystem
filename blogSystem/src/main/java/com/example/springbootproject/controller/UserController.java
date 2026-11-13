@@ -19,9 +19,9 @@ public class UserController {
     @Autowired
     private IUserService userService;
     @PostMapping("/code")
-    public Result sendCode(@RequestParam("phone") String phone) {
-
-        return userService.sendCode(phone);
+    public Result sendCode(@RequestParam("phone") String phone,
+                           @RequestParam(value = "scene", defaultValue = "login") String scene) {
+        return userService.sendCode(phone, scene);
     }
   @PostMapping("/login")
     public Result login(@RequestBody loginForm loginForm) {
@@ -36,8 +36,9 @@ public Result register(@RequestBody loginForm loginForm) {
   // ==================== 邮箱认证 ====================
 
   @PostMapping("/email/code")
-  public Result sendEmailCode(@RequestParam("email") String email) {
-      return userService.sendEmailCode(email);
+  public Result sendEmailCode(@RequestParam("email") String email,
+                              @RequestParam(value = "scene", defaultValue = "login") String scene) {
+      return userService.sendEmailCode(email, scene);
   }
 
   @PostMapping("/email/login")

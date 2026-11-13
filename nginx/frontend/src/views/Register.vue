@@ -35,10 +35,12 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { register, emailRegister } from '@/api/user'
+import { useUserStore } from '@/stores/user'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import RegisterForm from '@/components/RegisterForm.vue'
 
 const router = useRouter()
+const userStore = useUserStore()
 const formRef = ref<InstanceType<typeof RegisterForm>>()
 const loading = ref(false)
 const registerType = ref<'phone' | 'email'>('phone')
@@ -69,8 +71,17 @@ async function handleRegister() {
           confirmPassword: data.confirmPassword,
         })
     if (res.success) {
-      ElMessage.success('注册成功！神经链接已激活，欢迎加入。')
-      setTimeout(() => router.push('/login'), 1500)
+      const token = res.data as string | null
+      if (token) {
+        userStore.setToken(token)
+        await userStore.loadUserInfo()
+        ElMessage.success('注册成功，已自动登录！')
+        await router.replace('/home')
+      } else {
+        // 后端没有返回 token 时兜底回登录页
+        ElMessage.success('注册成功！请登录。')
+        await router.replace('/login')
+      }
     } else {
       ElMessage.error(res.errorMag || '注册失败')
     }
