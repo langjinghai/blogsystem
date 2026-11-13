@@ -12,6 +12,7 @@ import com.example.springbootproject.pojo.Result;
 import com.example.springbootproject.pojo.User;
 import com.example.springbootproject.pojo.UserDTO;
 import com.example.springbootproject.pojo.loginForm;
+import com.example.springbootproject.service.EmailService;
 import com.example.springbootproject.service.IFollowService;
 import com.example.springbootproject.service.IUserService;
 import com.example.springbootproject.utils.PasswordUtils;
@@ -19,11 +20,14 @@ import com.example.springbootproject.utils.RegexUtils;
 import com.example.springbootproject.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 
+import java.security.SecureRandom;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +45,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Autowired
     private IFollowService followService;
+
+    @Autowired
+    private EmailService emailService;
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Override
     public Result login(loginForm loginForm) {
@@ -88,6 +97,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
 
         // 7. 生成token，存入Redis
+        return Result.ok(issueToken(user));
+    }
+
+    /**
+     * 生成登录 token 并写入 Redis（手机号/邮箱登录共用）。
+     */
+    private String issueToken(User user) {
         String token = UUID.randomUUID().toString(true);
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
         Map<String, Object> userMap = BeanUtil.beanToMap(
@@ -100,8 +116,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         userMap.put("tokenVersion", currentTokenVersion(user.getId()));
         stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token, userMap);
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.SECONDS);
-
-        return Result.ok(token);
+        return token;
     }
 
     @Override
@@ -116,6 +131,153 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         log.info("发送短信验证码成功，验证码：{}", code);
 
+        return Result.ok();
+    }
+
+    // ==================== 邮箱认证 ====================
+
+    @Override
+    public Result sendEmailCode(String email) {
+        String normalized = normalizeEmail(email);
+        if (RegexUtils.isEmailInvalid(normalized) || normalized.length() > 128) {
+            return Result.fail("邮箱格式错误");
+        }
+
+        String cooldownKey = EMAIL_CODE_COOLDOWN_KEY + normalized;
+        Boolean acquired = stringRedisTemplate.opsForValue()
+                .setIfAbsent(cooldownKey, "1", 60, TimeUnit.SECONDS);
+        if (!Boolean.TRUE.equals(acquired)) {
+            return Result.fail("验证码发送过于频繁，请 60 秒后再试");
+        }
+
+        String code = generateEmailCode();
+        String codeKey = LOGIN_EMAIL_CODE_KEY + normalized;
+        stringRedisTemplate.opsForValue().set(codeKey, code, EMAIL_CODE_TTL, TimeUnit.MINUTES);
+        try {
+            emailService.sendCode(normalized, code);
+            return Result.ok();
+        } catch (Exception e) {
+            stringRedisTemplate.delete(codeKey);
+            stringRedisTemplate.delete(cooldownKey);
+            log.error("发送邮箱验证码失败，email={}", maskEmail(normalized), e);
+            String message = e instanceof IllegalStateException ? e.getMessage() : "验证码发送失败，请稍后重试";
+            return Result.fail(message);
+        }
+    }
+
+    @Override
+    public Result emailLogin(loginForm loginForm) {
+        String email = normalizeEmail(loginForm.getEmail());
+        if (RegexUtils.isEmailInvalid(email)) {
+            return Result.fail("邮箱格式错误");
+        }
+
+        User user = query().eq("email", email).one();
+        if (user == null) {
+            return Result.fail("邮箱或验证码错误");
+        }
+
+        String code = loginForm.getCode();
+        String password = loginForm.getPassword();
+        String codeKey = LOGIN_EMAIL_CODE_KEY + email;
+
+        if (code != null && !code.isEmpty()) {
+            String cacheCode = stringRedisTemplate.opsForValue().get(codeKey);
+            if (cacheCode == null || !cacheCode.equals(code)) {
+                return Result.fail("验证码错误或已过期");
+            }
+            stringRedisTemplate.delete(codeKey);
+        } else if (password != null && !password.isEmpty()) {
+            if (!PasswordUtils.matches(password, user.getPassword())) {
+                return Result.fail("邮箱或密码错误");
+            }
+            if (!PasswordUtils.isBcrypt(user.getPassword())) {
+                user.setPassword(PasswordUtils.encode(password));
+                updateById(user);
+            }
+        } else {
+            return Result.fail("请提供验证码或密码");
+        }
+
+        log.info("邮箱登录成功，email={}", maskEmail(email));
+        return Result.ok(issueToken(user));
+    }
+
+    @Override
+    public Result emailRegister(loginForm loginForm) {
+        String email = normalizeEmail(loginForm.getEmail());
+        if (RegexUtils.isEmailInvalid(email) || email.length() > 128) {
+            return Result.fail("邮箱格式错误");
+        }
+        if (query().eq("email", email).one() != null) {
+            return Result.fail("该邮箱已注册，请直接登录");
+        }
+
+        String codeKey = LOGIN_EMAIL_CODE_KEY + email;
+        String code = loginForm.getCode();
+        String cacheCode = stringRedisTemplate.opsForValue().get(codeKey);
+        if (cacheCode == null || !cacheCode.equals(code)) {
+            return Result.fail("验证码错误或已过期");
+        }
+
+        String password = loginForm.getPassword();
+        String confirmPassword = loginForm.getConfirmPassword();
+        if (password == null || password.length() < 4 || password.length() > 32) {
+            return Result.fail("密码为4~32位");
+        }
+        if (!password.equals(confirmPassword)) {
+            return Result.fail("两次密码不一致");
+        }
+
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(PasswordUtils.encode(password));
+        user.setNickName(USER_NICK_NAME_PREFIX + RandomUtil.randomString(6));
+        try {
+            save(user);
+        } catch (DuplicateKeyException e) {
+            return Result.fail("该邮箱已注册，请直接登录");
+        }
+
+        stringRedisTemplate.delete(codeKey);
+        log.info("邮箱用户注册成功，email={}", maskEmail(email));
+        return Result.ok(issueToken(user));
+    }
+
+    @Override
+    public Result emailForget(loginForm loginForm) {
+        String email = normalizeEmail(loginForm.getEmail());
+        if (RegexUtils.isEmailInvalid(email)) {
+            return Result.fail("邮箱格式错误");
+        }
+
+        String codeKey = LOGIN_EMAIL_CODE_KEY + email;
+        String code = loginForm.getCode();
+        String cacheCode = stringRedisTemplate.opsForValue().get(codeKey);
+        if (cacheCode == null || !cacheCode.equals(code)) {
+            return Result.fail("验证码错误或已过期");
+        }
+
+        String newPassword = loginForm.getNewPassword();
+        String confirmPassword = loginForm.getConfirmPassword();
+        if (newPassword == null || newPassword.length() < 4 || newPassword.length() > 32) {
+            return Result.fail("密码为4~32位");
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            return Result.fail("两次密码不一致");
+        }
+
+        User user = query().eq("email", email).one();
+        if (user == null) {
+            return Result.fail("邮箱或验证码错误");
+        }
+
+        user.setPassword(PasswordUtils.encode(newPassword));
+        updateById(user);
+        invalidateUserTokens(user.getId());
+        stringRedisTemplate.delete(codeKey);
+
+        log.info("邮箱密码重置成功，email={}", maskEmail(email));
         return Result.ok();
     }
 
@@ -161,21 +323,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         stringRedisTemplate.delete(LOGIN_CODE_KEY + phone);
 
         // 7. 自动登录：生成token存入Redis
-        String token = UUID.randomUUID().toString(true);
-        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
-        Map<String, Object> userMap = BeanUtil.beanToMap(
-                userDTO,
-                new java.util.HashMap<>(),
-                CopyOptions.create()
-                        .setIgnoreNullValue(true)
-                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue == null ? null : fieldValue.toString())
-        );
-        userMap.put("tokenVersion", currentTokenVersion(user.getId()));
-        stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token, userMap);
-        stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.SECONDS);
-
         log.info("新用户注册成功：{}", phone);
-        return Result.ok(token);
+        return Result.ok(issueToken(user));
     }
 
     @Override
@@ -212,7 +361,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 让该用户所有旧 token 立即失效
         invalidateUserTokens(user.getId());
 
-        log.info("密码修改成功：{}", user.getPhone());
+        log.info("密码修改成功：userId={}", user.getId());
         return Result.ok();
     }
 
@@ -296,6 +445,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             return Result.fail("用户不存在");
         }
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        // 邮箱属于账号隐私，不通过他人主页接口返回
+        userDTO.setEmail(null);
 
         // 统计该用户的文章数和总获赞数
         List<Article> userArticles = articleMapper.selectList(
@@ -375,6 +526,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private String currentTokenVersion(Long userId) {
         String version = stringRedisTemplate.opsForValue().get(USER_TOKEN_VERSION_KEY + userId);
         return version == null ? "0" : version;
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String generateEmailCode() {
+        return String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
+    }
+
+    private String maskEmail(String email) {
+        if (email == null) {
+            return "***";
+        }
+        int at = email.indexOf('@');
+        if (at <= 1) {
+            return "***" + (at >= 0 ? email.substring(at) : "");
+        }
+        return email.charAt(0) + "***" + email.substring(at);
     }
 
     /**

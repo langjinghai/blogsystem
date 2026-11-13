@@ -25,7 +25,8 @@ deploy/
   nginx-blog.conf        Linux nginx 站点配置模板
   blog.service           systemd 服务模板
   application-prod.yaml.example  生产配置模板
-  blog.env.example       OSS 密钥等环境变量模板
+  blog.env.example       OSS/SMTP 等环境变量模板
+  sql/                   数据库增量迁移脚本
   docker/                Docker Compose 部署
     docker-compose.yml
     Dockerfile.backend
@@ -47,7 +48,9 @@ deploy/
 6. 浏览器访问 Vite 地址（默认 5173），API 由 Vite 代理到 8080。
 
 > 图片上传需要配置阿里云 OSS 的 `OSS_ACCESS_KEY_ID` / `OSS_ACCESS_KEY_SECRET`。
-> 当前验证码会打印在后端日志中，未接入真实短信服务。
+> 手机号验证码会打印在后端日志中；邮箱登录会通过 QQ 邮箱 SMTP 真实发信。
+> 邮箱登录需配置 `MAIL_USERNAME` / `MAIL_PASSWORD`（QQ 邮箱授权码），不配则只能使用手机号登录。
+> 已有数据库需要先执行 `deploy/sql/2026-11-13-email-login.sql` 增加 `tb_user.email` 字段。
 
 ## 安全说明
 

@@ -19,7 +19,12 @@ public class MvConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/user/code",
                         "/user/login",
-                        "/user/register"
+                        "/user/register",
+                        "/user/forget",
+                        "/user/email/code",
+                        "/user/email/login",
+                        "/user/email/register",
+                        "/user/email/forget"
                 );
     }
 }

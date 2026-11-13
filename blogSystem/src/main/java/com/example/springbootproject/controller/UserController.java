@@ -33,6 +33,28 @@ public Result register(@RequestBody loginForm loginForm) {
         return userService.register(loginForm);
   }
 
+  // ==================== 邮箱认证 ====================
+
+  @PostMapping("/email/code")
+  public Result sendEmailCode(@RequestParam("email") String email) {
+      return userService.sendEmailCode(email);
+  }
+
+  @PostMapping("/email/login")
+  public Result emailLogin(@RequestBody loginForm loginForm) {
+      return userService.emailLogin(loginForm);
+  }
+
+  @PostMapping("/email/register")
+  public Result emailRegister(@RequestBody loginForm loginForm) {
+      return userService.emailRegister(loginForm);
+  }
+
+  @PostMapping("/email/forget")
+  public Result emailForget(@RequestBody loginForm loginForm) {
+      return userService.emailForget(loginForm);
+  }
+
   @PostMapping("/updatePassword")
     public Result updatePassword(@RequestBody loginForm loginForm) {
         return  userService.updatePassword(loginForm);

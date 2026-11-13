@@ -11,6 +11,14 @@ public interface IUserService extends IService<User> {
 
     Result sendCode(String phone);
 
+    Result sendEmailCode(String email);
+
+    Result emailLogin(loginForm loginForm);
+
+    Result emailRegister(loginForm loginForm);
+
+    Result emailForget(loginForm loginForm);
+
     Result register(loginForm loginForm);
 
     Result updatePassword(loginForm loginForm);

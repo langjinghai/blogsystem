@@ -4,7 +4,16 @@
     subtitle="重置神经矩阵认证凭据"
     :ai-messages="aiMessages"
   >
-    <ForgetPasswordForm ref="formRef" />
+    <el-radio-group
+      v-model="resetType"
+      size="small"
+      style="display:flex;justify-content:center;margin-bottom:14px"
+    >
+      <el-radio-button value="phone">手机号找回</el-radio-button>
+      <el-radio-button value="email">邮箱找回</el-radio-button>
+    </el-radio-group>
+
+    <ForgetPasswordForm ref="formRef" :channel="resetType" />
 
     <el-button
       class="app-btn--primary"
@@ -25,13 +34,14 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { forgetPassword } from '@/api/user'
+import { forgetPassword, emailForgetPassword } from '@/api/user'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import ForgetPasswordForm from '@/components/ForgetPasswordForm.vue'
 
 const router = useRouter()
 const formRef = ref<InstanceType<typeof ForgetPasswordForm>>()
 const loading = ref(false)
+const resetType = ref<'phone' | 'email'>('phone')
 
 const aiMessages = [
   '检测到凭据丢失，指挥官。',
@@ -45,7 +55,19 @@ async function handleReset() {
 
   loading.value = true
   try {
-    const res = await forgetPassword(data)
+    const res = resetType.value === 'email'
+      ? await emailForgetPassword({
+          email: data.email,
+          code: data.code,
+          newPassword: data.newPassword,
+          confirmPassword: data.confirmPassword,
+        })
+      : await forgetPassword({
+          phone: data.phone,
+          code: data.code,
+          newPassword: data.newPassword,
+          confirmPassword: data.confirmPassword,
+        })
     if (res.success) {
       ElMessage.success('密码重置成功！请使用新凭据重新登录。')
       setTimeout(() => router.push('/login'), 1500)

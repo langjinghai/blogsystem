@@ -32,6 +32,23 @@ spring:
       max-file-size: 5MB
       max-request-size: 10MB
 
+  # QQ 邮箱 SMTP；MAIL_PASSWORD 是邮箱授权码
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 aliyun:
   oss:
     endpoint: ${OSS_ENDPOINT:oss-cn-shenzhen.aliyuncs.com}

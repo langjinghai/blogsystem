@@ -34,6 +34,23 @@ spring:
       max-file-size: 5MB
       max-request-size: 10MB
 
+  # QQ 邮箱 SMTP；MAIL_PASSWORD 是邮箱授权码，不是 QQ 登录密码
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 # 阿里云 OSS（图片上传）
 # access-key-id / secret 从 systemd 的 /opt/blogsystem/blog.env 读取
 aliyun:

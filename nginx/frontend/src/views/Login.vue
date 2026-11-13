@@ -4,13 +4,23 @@
     subtitle="登录 · 连接神经矩阵"
     :ai-messages="aiMessages"
   >
+    <!-- 登录方式：手机号 / 邮箱 -->
+    <el-radio-group
+      v-model="loginType"
+      size="small"
+      style="display:flex;justify-content:center;margin-bottom:14px"
+    >
+      <el-radio-button value="phone">手机号</el-radio-button>
+      <el-radio-button value="email">邮箱</el-radio-button>
+    </el-radio-group>
+
     <!-- Tabs 切换 -->
     <el-tabs v-model="mode" class="app-tabs" @before-leave="handleTabSwitch">
       <el-tab-pane label="验证码登录" name="code">
-        <SmsLoginForm ref="smsFormRef" />
+        <SmsLoginForm ref="smsFormRef" :channel="loginType" />
       </el-tab-pane>
       <el-tab-pane label="密码登录" name="password">
-        <LoginForm ref="pwdFormRef" />
+        <LoginForm ref="pwdFormRef" :channel="loginType" />
       </el-tab-pane>
     </el-tabs>
 
@@ -32,11 +42,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { login, type LoginParams } from '@/api/user'
+import { login, emailLogin, type LoginParams } from '@/api/user'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import SmsLoginForm from '@/components/SmsLoginForm.vue'
 import LoginForm from '@/components/LoginForm.vue'
@@ -44,6 +54,7 @@ import LoginForm from '@/components/LoginForm.vue'
 const router = useRouter()
 const userStore = useUserStore()
 
+const loginType = ref<'phone' | 'email'>('phone')
 const mode = ref<'code' | 'password'>('code')
 const smsFormRef = ref<InstanceType<typeof SmsLoginForm>>()
 const pwdFormRef = ref<InstanceType<typeof LoginForm>>()
@@ -60,13 +71,21 @@ async function handleLogin() {
   const data = await active.value?.submit()
   if (!data) return
 
-  const params: LoginParams = 'code' in data!
-    ? { phone: data!.phone, code: data!.code }
-    : { phone: data!.phone, password: (data as any).password }
-
   loading.value = true
   try {
-    const res = await login(params)
+    let res
+    if (loginType.value === 'email') {
+      const params = 'code' in data
+        ? { email: data.email, code: data.code }
+        : { email: data.email, password: (data as any).password }
+      res = await emailLogin(params)
+    } else {
+      const params: LoginParams = 'code' in data
+        ? { phone: data.phone, code: data.code }
+        : { phone: data.phone, password: (data as any).password }
+      res = await login(params)
+    }
+
     if (res.success) {
       const token = res.data as string | null
       if (token) {
@@ -95,4 +114,11 @@ function handleTabSwitch() {
   })
   return true
 }
+
+watch(loginType, () => {
+  nextTick(() => {
+    smsFormRef.value?.clearValidate()
+    pwdFormRef.value?.clearValidate()
+  })
+})
 </script>

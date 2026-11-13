@@ -4,6 +4,10 @@ public class Constants {
     // 登录验证码相关
     public static final String LOGIN_CODE_KEY = "login:code:";
     public static final Long LOGIN_CODE_TTL = 2L;
+    // 邮箱验证码相关
+    public static final String LOGIN_EMAIL_CODE_KEY = "login:email:code:";
+    public static final Long EMAIL_CODE_TTL = 5L;
+    public static final String EMAIL_CODE_COOLDOWN_KEY = "login:email:code:cooldown:";
     // 登录用户会话相关
     public static final String LOGIN_USER_KEY = "login:token:";
     public static final Long LOGIN_USER_TTL = 3600L;

@@ -20,6 +20,7 @@
 - 能拉取 Docker Hub 镜像；国内服务器建议给 Docker 配置镜像加速。
 - 从本机导出的 `blogsystem.sql`。
 - 阿里云 OSS 的 AccessKey（图片上传用，必填）。
+- QQ 邮箱 SMTP 授权码（邮箱登录用；不配则只能手机号登录）。
 
 ## 1. 准备 .env
 
@@ -38,7 +39,16 @@ MYSQL_USER=bloguser
 MYSQL_PASSWORD=强密码
 OSS_ACCESS_KEY_ID=你的AccessKeyId
 OSS_ACCESS_KEY_SECRET=你的AccessKeySecret
+
+# QQ 邮箱 SMTP（邮箱登录/注册/找回密码）
+MAIL_HOST=smtp.qq.com
+MAIL_PORT=465
+MAIL_USERNAME=你的QQ邮箱@qq.com
+MAIL_PASSWORD=QQ邮箱授权码
 ```
+
+> `MAIL_PASSWORD` 是 QQ 邮箱设置里生成的 **SMTP 授权码**，不是 QQ 登录密码。
+> 不配置 `MAIL_*` 时应用仍可启动，但邮箱验证码接口会返回“邮件服务未配置”。
 
 > `.env` 已被 `.gitignore` 忽略，不要提交真实密钥。
 
@@ -69,6 +79,19 @@ MySQL 容器**首次启动**时会自动执行 `init/*.sql`，导入到 `blogsys
 - 需要重新导入时先备份，再 `docker compose ... down -v`（会删除数据库和 Redis 数据）。
 - 不要把含真实用户数据的 SQL 提交到 Git（`.gitignore` 已忽略 `init/*.sql`）。
 
+### 已有数据库升级（邮箱登录）
+
+旧数据卷不会自动执行新的迁移 SQL，需要手动执行一次：
+
+```bash
+cd /opt/blogsystem/deploy/docker
+docker compose --env-file .env -f docker-compose.yml exec -T mysql \
+  sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" blogsystem' \
+  < ../sql/2026-11-13-email-login.sql
+```
+
+执行后 `tb_user` 会多出 `email` 字段，`phone` 变为可空。**新部署**如果导入的是旧 dump，也要执行一次。
+
 ## 3. 启动
 
 ```bash
@@ -96,14 +119,15 @@ curl -i http://127.0.0.1/user/info     # 401 表示后端已启动
 浏览器打开 `http://服务器IP/`，测试：
 
 1. 登录页显示；
-2. 注册/登录；
-3. 发布文章、上传图片；
-4. 刷新文章详情、个人主页不 404。
+2. 手机号注册/登录、密码登录；
+3. 邮箱注册/登录：QQ 邮箱能收到 6 位验证码；
+4. 发布文章、上传图片；
+5. 刷新文章详情、个人主页不 404。
 
-验证码没有接短信服务，会打印在后端日志：
+手机号验证码没有接短信服务，会打印在后端日志；邮箱验证码通过 QQ 邮箱 SMTP 真实发信，不会打印：
 
 ```bash
-docker compose --env-file deploy/docker/.env -f deploy/docker/docker-compose.yml logs -f backend | grep '验证码'
+docker compose --env-file deploy/docker/.env -f deploy/docker/docker-compose.yml logs -f backend | grep '短信验证码'
 ```
 
 ## 5. 端口与 HTTPS

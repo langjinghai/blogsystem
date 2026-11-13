@@ -10,6 +10,10 @@ public class RegexUtils {
 
         return mismatch(phone, RegexPatterns.PHONE_REGEX);
     }
+
+    public static boolean isEmailInvalid(String email){
+        return mismatch(email, RegexPatterns.EMAIL_REGEX);
+    }
     private static boolean mismatch(String str, String regex){
         if (StrUtil.isBlank(str)) {
             return true;

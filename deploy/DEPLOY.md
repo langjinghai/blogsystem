@@ -96,6 +96,14 @@ mysql -u bloguser -p -e "SHOW TABLES;" blogsystem
 
 应能看到 `tb_article`、`tb_category`、`tb_comment`、`tb_follow`、`tb_user`。
 
+如果使用的是旧 dump（`tb_user` 没有 `email` 字段），再执行一次邮箱登录迁移：
+
+```bash
+mysql -u bloguser -p blogsystem < ~/blogsystem/deploy/sql/2026-11-13-email-login.sql
+```
+
+> 迁移只执行一次；成功后 `tb_user` 会多出 `email` 字段，`phone` 变为可空。
+
 > MySQL 8 默认使用 `caching_sha2_password`，项目里的 Connector/J 8.0.33 配合
 > `allowPublicKeyRetrieval=true` 可以正常连接。
 > 保持 MySQL 只监听 `127.0.0.1`，不要把 3306 开到公网。
@@ -125,6 +133,24 @@ Redis 保存登录 token、验证码、点赞/关注集合，**必须运行**。
 > `application.yaml` 里写的是 `${OSS_ACCESS_KEY_ID}` / `${OSS_ACCESS_KEY_SECRET}`，
 > 环境变量缺失时应用会在启动阶段报“无法解析占位符”，所以这两个值必填。
 
+## 4.1 配置 QQ 邮箱 SMTP（邮箱登录）
+
+1. 登录 QQ 邮箱网页版 → 设置 → 账户 → 开启 **POP3/IMAP/SMTP 服务** → 生成 **授权码**。
+2. 把授权码填到 `blog.env`（Docker 部署填 `deploy/docker/.env`）：
+
+```dotenv
+MAIL_HOST=smtp.qq.com
+MAIL_PORT=465
+MAIL_USERNAME=你的QQ邮箱@qq.com
+MAIL_PASSWORD=QQ邮箱授权码
+# 可选，默认等于 MAIL_USERNAME
+# MAIL_FROM=你的QQ邮箱@qq.com
+```
+
+> `MAIL_PASSWORD` 是授权码，不是 QQ 登录密码。
+> 不配置时应用仍能启动，但邮箱验证码会返回“邮件服务未配置”，手机号登录不受影响。
+> 邮箱验证码 5 分钟有效，同一邮箱 60 秒内只能发送一次。
+
 ## 5. 部署后端
 
 ### 5.1 拉取代码并构建
@@ -153,7 +179,7 @@ sudo cp ~/blogsystem/deploy/application-prod.yaml.example /opt/blogsystem/applic
 sudo cp ~/blogsystem/deploy/blog.env.example /opt/blogsystem/blog.env
 
 sudo nano /opt/blogsystem/application-prod.yaml   # 改数据库密码、OSS endpoint/bucket
-sudo nano /opt/blogsystem/blog.env                # 填 OSS AccessKey
+sudo nano /opt/blogsystem/blog.env                # 填 OSS AccessKey 和邮箱 SMTP 授权码
 
 sudo chmod 600 /opt/blogsystem/application-prod.yaml /opt/blogsystem/blog.env
 sudo chown -R blogsystem:blogsystem /opt/blogsystem

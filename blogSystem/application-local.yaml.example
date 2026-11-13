@@ -7,3 +7,9 @@ spring:
   redis:
     host: 127.0.0.1
     port: 6379
+  # QQ 邮箱 SMTP（可选；不配则邮箱验证码接口会提示“邮件服务未配置”）
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: your-qq-number@qq.com
+    password: change-me-qq-auth-code

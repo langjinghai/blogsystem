@@ -137,6 +137,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         // 用 Redis 判断当前用户是否关注了这些粉丝
         List<UserDTO> result = users.stream().map(user -> {
             UserDTO dto = BeanUtil.copyProperties(user, UserDTO.class);
+            dto.setEmail(null);
             if (currentUserId != null) {
                 String key = FOLLOW_FOLLOWING_KEY + currentUserId;
                 dto.setIsFollowed(Boolean.TRUE.equals(
@@ -174,6 +175,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         // 用 Redis 判断当前用户是否也关注了这些人
         List<UserDTO> result = users.stream().map(user -> {
             UserDTO dto = BeanUtil.copyProperties(user, UserDTO.class);
+            dto.setEmail(null);
             if (currentUserId != null) {
                 String key = FOLLOW_FOLLOWING_KEY + currentUserId;
                 dto.setIsFollowed(Boolean.TRUE.equals(

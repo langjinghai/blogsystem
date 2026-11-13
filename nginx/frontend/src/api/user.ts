@@ -12,20 +12,43 @@ import type { ApiResult } from '@/utils/request'
 export type { ApiResult }
 
 export interface LoginParams {
-  phone: string
+  phone?: string
+  email?: string
   password?: string
   code?: string
 }
 
 export interface RegisterParams {
-  phone: string
+  phone?: string
+  email?: string
   code: string
   password: string
   confirmPassword: string
 }
 
 export interface ForgetParams {
-  phone: string
+  phone?: string
+  email?: string
+  code: string
+  newPassword: string
+  confirmPassword: string
+}
+
+export interface EmailLoginParams {
+  email: string
+  code?: string
+  password?: string
+}
+
+export interface EmailRegisterParams {
+  email: string
+  code: string
+  password: string
+  confirmPassword: string
+}
+
+export interface EmailForgetParams {
+  email: string
   code: string
   newPassword: string
   confirmPassword: string
@@ -39,7 +62,8 @@ export interface UpdatePasswordParams {
 
 export interface UserInfo {
   id: number
-  phone: string
+  phone?: string
+  email?: string
   nickName: string
   icon: string
   articleCount?: number
@@ -63,9 +87,21 @@ export async function sendCode(phone: string): Promise<ApiResult> {
   return data
 }
 
+/** POST /user/email/code?email=xxx@qq.com */
+export async function sendEmailCode(email: string): Promise<ApiResult> {
+  const { data } = await http.post<ApiResult>('/user/email/code', null, { params: { email } })
+  return data
+}
+
 /** POST /user/login — 支持 { phone, code } 或 { phone, password } */
 export async function login(params: LoginParams): Promise<ApiResult> {
   const { data } = await http.post<ApiResult>('/user/login', params)
+  return data
+}
+
+/** POST /user/email/login — 支持 { email, code } 或 { email, password } */
+export async function emailLogin(params: EmailLoginParams): Promise<ApiResult> {
+  const { data } = await http.post<ApiResult>('/user/email/login', params)
   return data
 }
 
@@ -75,9 +111,21 @@ export async function register(params: RegisterParams): Promise<ApiResult> {
   return data
 }
 
+/** POST /user/email/register */
+export async function emailRegister(params: EmailRegisterParams): Promise<ApiResult> {
+  const { data } = await http.post<ApiResult>('/user/email/register', params)
+  return data
+}
+
 /** POST /user/forget */
 export async function forgetPassword(params: ForgetParams): Promise<ApiResult> {
   const { data } = await http.post<ApiResult>('/user/forget', params)
+  return data
+}
+
+/** POST /user/email/forget */
+export async function emailForgetPassword(params: EmailForgetParams): Promise<ApiResult> {
+  const { data } = await http.post<ApiResult>('/user/email/forget', params)
   return data
 }
 

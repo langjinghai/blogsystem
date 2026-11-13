@@ -4,7 +4,16 @@
     subtitle="注册 · 激活神经链接"
     :ai-messages="aiMessages"
   >
-    <RegisterForm ref="formRef" />
+    <el-radio-group
+      v-model="registerType"
+      size="small"
+      style="display:flex;justify-content:center;margin-bottom:14px"
+    >
+      <el-radio-button value="phone">手机号注册</el-radio-button>
+      <el-radio-button value="email">邮箱注册</el-radio-button>
+    </el-radio-group>
+
+    <RegisterForm ref="formRef" :channel="registerType" />
 
     <el-button
       class="app-btn--primary"
@@ -25,13 +34,14 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { register } from '@/api/user'
+import { register, emailRegister } from '@/api/user'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import RegisterForm from '@/components/RegisterForm.vue'
 
 const router = useRouter()
 const formRef = ref<InstanceType<typeof RegisterForm>>()
 const loading = ref(false)
+const registerType = ref<'phone' | 'email'>('phone')
 
 const aiMessages = [
   '新兵报到，指挥官。',
@@ -45,7 +55,19 @@ async function handleRegister() {
 
   loading.value = true
   try {
-    const res = await register(data)
+    const res = registerType.value === 'email'
+      ? await emailRegister({
+          email: data.email,
+          code: data.code,
+          password: data.password,
+          confirmPassword: data.confirmPassword,
+        })
+      : await register({
+          phone: data.phone,
+          code: data.code,
+          password: data.password,
+          confirmPassword: data.confirmPassword,
+        })
     if (res.success) {
       ElMessage.success('注册成功！神经链接已激活，欢迎加入。')
       setTimeout(() => router.push('/login'), 1500)

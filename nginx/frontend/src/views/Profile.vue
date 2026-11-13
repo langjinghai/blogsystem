@@ -31,7 +31,8 @@
 
         <div class="app-profile-page__info">
           <h2>{{ userStore.nickname }}</h2>
-          <p>手机号：{{ maskedPhone }}</p>
+          <p v-if="userStore.userInfo?.email">邮箱：{{ maskedEmail }}</p>
+          <p v-else>手机号：{{ maskedPhone }}</p>
           <div class="app-profile-page__stats">
             <div>
               <div class="stat-value">{{ profileStats.articleCount }}</div>
@@ -303,6 +304,13 @@ const maskedPhone = computed(() => {
     return phone.slice(0, 3) + '****' + phone.slice(7)
   }
   return phone
+})
+
+const maskedEmail = computed(() => {
+  const email = userStore.userInfo?.email || ''
+  const at = email.indexOf('@')
+  if (at <= 1) return email
+  return email.charAt(0) + '***' + email.slice(at)
 })
 
 async function showFollowList(mode: 'followers' | 'following') {

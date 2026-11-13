@@ -14,6 +14,8 @@ public class UserDTO {
     private Long id;
     // 手机号
     private String phone;
+    // 邮箱（公开用户信息接口中会被置空）
+    private String email;
     // 用户昵称
     private String nickName;
     // 用户头像

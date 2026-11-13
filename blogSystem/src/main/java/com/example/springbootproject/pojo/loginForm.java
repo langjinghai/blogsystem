@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class loginForm {
     private String phone;
+    private String email;
     private String password;
     private String code;
     //注册/忘记密码时用于二次确认
