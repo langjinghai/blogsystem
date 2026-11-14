@@ -92,3 +92,8 @@ docker compose --env-file deploy/docker/.env -f deploy/docker/docker-compose.yml
 
 - `application.yaml` 里是开发环境配置，生产环境请用 `deploy/application-prod.yaml.example` 覆盖，不要把真实数据库密码和 OSS 密钥提交到仓库。
 - 公开仓库不包含真实数据库 dump、`.env`、用户手机号/邮箱或第三方密钥；演示分类见 `deploy/sql/seed.sql`。
+
+## License
+
+本项目采用 [MIT License](LICENSE) 开源。
+
