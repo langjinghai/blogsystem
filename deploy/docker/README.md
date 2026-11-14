@@ -18,7 +18,7 @@
 - Docker 24+ 与 Compose v2（`docker compose version` 可用）。
 - 服务器 80 端口空闲（如果已有宿主机 nginx，见下面「端口与 HTTPS」）。
 - 能拉取 Docker Hub 镜像；国内服务器建议给 Docker 配置镜像加速。
-- 从本机导出的 `blogsystem.sql`。
+- 数据库 schema/seed（仓库自带），或你自己的 `blogsystem.sql`。
 - 阿里云 OSS 的 AccessKey（图片上传用，必填）。
 - QQ 邮箱 SMTP 授权码（邮箱登录用；不配则只能手机号登录）。
 
@@ -52,7 +52,18 @@ MAIL_PASSWORD=QQ邮箱授权码
 
 > `.env` 已被 `.gitignore` 忽略，不要提交真实密钥。
 
-## 2. 放入数据库 dump
+## 2. 准备数据库初始化 SQL（二选一）
+
+### 方式 A：使用仓库自带的 schema + 演示分类（推荐）
+
+```bash
+cp deploy/sql/schema.sql deploy/docker/init/01-schema.sql
+cp deploy/sql/seed.sql deploy/docker/init/02-seed.sql
+```
+
+`schema.sql` 已包含 `email` 字段和全部索引，`seed.sql` 只有 6 个通用分类，不含真实用户数据。
+
+### 方式 B：使用自己的数据库 dump
 
 在本机导出（PowerShell）：
 
@@ -70,6 +81,8 @@ MAIL_PASSWORD=QQ邮箱授权码
 scp D:\blogsystem.sql 用户名@服务器IP:/tmp/blogsystem.sql
 cp /tmp/blogsystem.sql deploy/docker/init/blogsystem.sql
 ```
+
+> 如果使用旧 dump（`tb_user` 没有 `email` 字段），启动后还要执行下面的「已有数据库升级」。
 
 MySQL 容器**首次启动**时会自动执行 `init/*.sql`，导入到 `blogsystem` 库。
 
@@ -236,4 +249,4 @@ nginx 配置里使用了 Docker 内置 DNS（`resolver 127.0.0.11`）和变量 `
 - MySQL、Redis、backend 不要加 `ports` 暴露到公网。
 - OSS 使用最小权限 AccessKey；Bucket 公共读只用于图片。
 - 生产环境建议在宿主机 nginx 或云负载均衡上做 HTTPS。
-- 私有仓库在服务器 clone 需要 PAT 或部署密钥。
+- 公开仓库不需要 PAT；如果你 fork 了仓库，把 clone 地址换成自己的即可。

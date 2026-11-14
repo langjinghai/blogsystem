@@ -26,7 +26,7 @@ deploy/
   blog.service           systemd 服务模板
   application-prod.yaml.example  生产配置模板
   blog.env.example       OSS/SMTP 等环境变量模板
-  sql/                   数据库增量迁移脚本
+  sql/                   可公开的建库 schema、演示数据和迁移脚本
   docker/                Docker Compose 部署
     docker-compose.yml
     Dockerfile.backend
@@ -41,7 +41,12 @@ deploy/
    ```bash
    cp blogSystem/application-local.yaml.example blogSystem/application-local.yaml
    ```
-2. 启动 MySQL，创建 `blogsystem` 库并导入数据。
+2. 启动 MySQL，创建库并导入表结构和演示分类（`schema.sql` 已包含 `email` 字段）：
+   ```bash
+   mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS blogsystem CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+   mysql -u root -p < deploy/sql/schema.sql
+   mysql -u root -p < deploy/sql/seed.sql
+   ```
 3. 启动 Redis（默认 `127.0.0.1:6379`）。
 4. 后端：用 JDK 11/17 运行 `blogSystem`，默认端口 8080。
 5. 前端：`cd nginx/frontend && npm install && npm run dev`，或在 IntelliJ 中启动。
@@ -50,7 +55,7 @@ deploy/
 > 图片上传需要配置阿里云 OSS 的 `OSS_ACCESS_KEY_ID` / `OSS_ACCESS_KEY_SECRET`。
 > 手机号验证码会打印在后端日志中；邮箱登录会通过 QQ 邮箱 SMTP 真实发信。
 > 邮箱登录需配置 `MAIL_USERNAME` / `MAIL_PASSWORD`（QQ 邮箱授权码），不配则只能使用手机号登录。
-> 已有数据库需要先执行 `deploy/sql/2026-11-13-email-login.sql` 增加 `tb_user.email` 字段。
+> 旧数据库升级需要执行 `deploy/sql/2026-11-13-email-login.sql`；新库直接使用 `schema.sql` 即可。
 
 ## 安全说明
 
@@ -68,9 +73,12 @@ deploy/
 
 ```bash
 cp deploy/docker/.env.example deploy/docker/.env   # 填写密码和 OSS 密钥
-cp /path/to/blogsystem.sql deploy/docker/init/blogsystem.sql
+cp deploy/sql/schema.sql deploy/docker/init/01-schema.sql
+cp deploy/sql/seed.sql deploy/docker/init/02-seed.sql
 docker compose --env-file deploy/docker/.env -f deploy/docker/docker-compose.yml up -d --build
 ```
+
+如果你有自己的数据 dump，也可以用它替换 `init/` 下的两个 SQL 文件。
 
 详细说明见 **[deploy/docker/README.md](deploy/docker/README.md)**。
 
@@ -83,4 +91,4 @@ docker compose --env-file deploy/docker/.env -f deploy/docker/docker-compose.yml
 ## 说明
 
 - `application.yaml` 里是开发环境配置，生产环境请用 `deploy/application-prod.yaml.example` 覆盖，不要把真实数据库密码和 OSS 密钥提交到仓库。
-- 仓库为私有仓库；服务器 clone 需要 GitHub PAT 或部署密钥。
+- 公开仓库不包含真实数据库 dump、`.env`、用户手机号/邮箱或第三方密钥；演示分类见 `deploy/sql/seed.sql`。

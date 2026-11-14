@@ -47,9 +47,18 @@ sudo dnf install -y java-17-openjdk-headless mysql-server redis nginx maven
 
 ## 2. 准备数据库
 
-### 2.1 从本机导出（在 Windows 当前机器执行）
+### 2.1 准备 SQL
 
-项目仓库里没有 SQL 文件，需要从你本机已有的 `blogsystem` 数据库导出。
+新库可以直接使用仓库自带的 `deploy/sql/schema.sql` 和 `seed.sql`；如果要保留旧数据，再从本机导出 dump。
+
+上传仓库自带的 SQL：
+
+```powershell
+scp -r deploy/sql 用户名@服务器IP:/tmp/blogsystem-sql
+```
+
+如果已有数据，从本机导出（Windows）：
+
 本机 MySQL 客户端路径是 `C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe`：
 
 ```powershell
@@ -87,14 +96,18 @@ FLUSH PRIVILEGES;
 EXIT;
 ```
 
-导入：
+导入（二选一）：
 
 ```bash
+# 新库：schema 已包含 email 字段
+mysql -u bloguser -p blogsystem < /tmp/blogsystem-sql/schema.sql
+mysql -u bloguser -p blogsystem < /tmp/blogsystem-sql/seed.sql
+
+# 或：已有数据的旧 dump
 mysql -u bloguser -p blogsystem < /tmp/blogsystem.sql
-mysql -u bloguser -p -e "SHOW TABLES;" blogsystem
 ```
 
-应能看到 `tb_article`、`tb_category`、`tb_comment`、`tb_follow`、`tb_user`。
+`SHOW TABLES` 应能看到 `tb_article`、`tb_category`、`tb_comment`、`tb_follow`、`tb_user`。
 
 如果使用的是旧 dump（`tb_user` 没有 `email` 字段），再执行一次邮箱登录迁移：
 
@@ -155,7 +168,7 @@ MAIL_PASSWORD=QQ邮箱授权码
 
 ### 5.1 拉取代码并构建
 
-仓库是私有的，服务器上 clone 时用户名填 `langjinghai`，密码处填 **GitHub PAT**（不是登录密码）：
+仓库是公开的，可以直接 clone：
 
 ```bash
 cd ~
@@ -371,8 +384,8 @@ sudo cp /opt/blogsystem/blogSystem-0.0.1-SNAPSHOT.jar \
 
 ## 12. 已知限制
 
-- **验证码只打印在后端日志**，没有接短信服务；公网多人使用前应接入短信或改为测试码。
+- **手机号验证码只打印在后端日志**，没有接短信服务；公网多人使用前应接入短信或改为测试码。邮箱验证码通过 SMTP 真实发信。
 - **图片依赖阿里云 OSS**；不配置 OSS 时应用启动会因占位符缺失失败，图片上传也不可用。
 - **Redis 是必需组件**，登录、点赞、关注都依赖它。
-- 仓库是私有的，服务器 clone 需要 PAT 或部署密钥。
+- 公开仓库不需要 PAT；如果你 fork 了仓库，把 clone 地址换成自己的即可。
 - `application.yaml` 里是开发环境配置；生产请用 `application-prod.yaml` 覆盖，不要把真实密码/密钥提交进 Git。
